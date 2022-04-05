@@ -1,5 +1,5 @@
 async function sendRequest(node, msg, config, axios) {
-  let requestOptions = generateRequest(node, msg, config);
+  const requestOptions = generateRequest(node, msg, config);
   try {
     return await axios(requestOptions);
   } catch (error) {
@@ -31,7 +31,6 @@ function generateRequest(node, msg, config) {
   baseUrl = process.env.NODE_ENV === 'dev' ? 'http://api.yousolution.local' : baseUrl;
 
   const url = `${baseUrl}/messages?sourceNode=${sourceNode}&entity=${entity}`;
-  console.log(url);
   const data = Array.isArray(msg.payload) ? msg.payload : [msg.payload];
   const optionsRequest = {
     method: 'post',

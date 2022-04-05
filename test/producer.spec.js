@@ -118,7 +118,6 @@ describe('producer Node', () => {
 
         n1.on('call:error', (error) => {
           try {
-            console.log(error);
             // should.equal(n1.status.lastCall.calledWith({ fill: 'red', shape: 'dot', text: 'Missing configuration' }), true);
             error.should.have.property('firstArg', new Error('Missing configuration'));
             done();
@@ -126,47 +125,6 @@ describe('producer Node', () => {
             done(err);
           }
         });
-      });
-    });
-  });
-
-  it('should have without headers connected', (done) => {
-    const flow = [
-      {
-        id: 'n1',
-        type: 'producer',
-        name: 'producer',
-        wires: [['n2']],
-        z: 'flow',
-        rules: [{ t: 'set', p: 'payload', to: '#:(memory1)::flowValue', tot: 'flow' }],
-      },
-      { id: 'n2', type: 'helper' },
-    ];
-    helper.load(producer, flow, () => {
-      const n2 = helper.getNode('n2');
-      const n1 = helper.getNode('n1');
-      n1.credentials.sourceNode = 'sourceNode';
-      n1.credentials.entity = 'entity';
-      n1.credentials.token = 'token';
-
-      process.env.NODE_ENV = 'dev';
-
-      // sinon.stub(Support, 'login').resolves({
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Content-Length': 100,
-      //   },
-      // });
-
-      n1.receive({ payload: {} });
-
-      n2.on('input', (msg) => {
-        try {
-          msg.should.have.property('_msgid');
-          done();
-        } catch (err) {
-          done(err);
-        }
       });
     });
   });
