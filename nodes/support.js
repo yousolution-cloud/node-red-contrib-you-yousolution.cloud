@@ -1,3 +1,6 @@
+const URL_SERVER_PROD = 'https://api.yousolution.cloud';
+const URL_SERVER_DEV = 'http://api.yousolution.local';
+
 async function sendRequest(node, msg, config, axios) {
   const requestOptions = generateRequest(node, msg, config);
   try {
@@ -14,7 +17,7 @@ async function sendRequest(node, msg, config, axios) {
 }
 
 function generateRequest(node, msg, config) {
-  let baseUrl = `https://api.yousolution.cloud`;
+  let baseUrl = URL_SERVER_PROD;
 
   const entity = config.entity;
   const sourceNode = config.sourceNode;
@@ -28,7 +31,7 @@ function generateRequest(node, msg, config) {
     throw new Error('Missing payload');
   }
 
-  baseUrl = process.env.NODE_ENV === 'dev' ? 'http://api.yousolution.local' : baseUrl;
+  baseUrl = process.env.NODE_ENV === 'dev' ? URL_SERVER_DEV : baseUrl;
 
   const url = `${baseUrl}/messages?sourceNode=${sourceNode}&entity=${entity}`;
   const data = Array.isArray(msg.payload) ? msg.payload : [msg.payload];

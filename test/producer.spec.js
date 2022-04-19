@@ -1,5 +1,6 @@
 const should = require('should');
 const helper = require('node-red-node-test-helper');
+const Support = require('../nodes/support');
 const producer = require('../nodes/producer');
 const Context = require('../node_modules/./@node-red/runtime/lib/nodes/context/index');
 const sinon = require('sinon');
@@ -8,6 +9,7 @@ helper.init(require.resolve('node-red'));
 
 describe('producer Node', () => {
   beforeEach((done) => {
+    process.env.NODE_ENV = 'dev';
     helper.startServer(done);
   });
 
@@ -99,7 +101,6 @@ describe('producer Node', () => {
   });
 
   it('should no have credentials when send message', (done) => {
-    process.env.NODE_ENV = 'dev';
     const flow = [
       {
         id: 'n1',
@@ -120,6 +121,48 @@ describe('producer Node', () => {
           try {
             // should.equal(n1.status.lastCall.calledWith({ fill: 'red', shape: 'dot', text: 'Missing configuration' }), true);
             error.should.have.property('firstArg', new Error('Missing configuration'));
+            done();
+          } catch (err) {
+            done(err);
+          }
+        });
+      });
+    });
+  });
+
+  it('should have correct request with data', (done) => {
+    const flow = [
+      {
+        id: 'n1',
+        type: 'producer',
+        name: 'producer',
+        wires: [['n2']],
+        entity: 'entity',
+        sourceNode: 'sourceNode',
+        z: 'flow',
+        rules: [{ t: 'set', p: 'payload', to: '#:(memory1)::flowValue', tot: 'flow' }],
+      },
+      { id: 'n2', type: 'helper' },
+    ];
+
+    const expected = { status: 200 };
+
+    sinon.stub(Support, 'sendRequest').resolves({ status: 200 });
+
+    helper.load(producer, flow, () => {
+      initContext(function () {
+        const n2 = helper.getNode('n2');
+        const n1 = helper.getNode('n1');
+
+        n1.credentials = { token: 'stubToken' };
+
+        n1.receive({ data: { cardCode: '00000001', cardName: '0000001' } });
+
+        n2.on('input', (msg) => {
+          try {
+            msg.should.have.property('_msgid');
+            msg.should.have.property('statusCode', 200);
+            should.deepEqual(msg.payload, expected);
             done();
           } catch (err) {
             done(err);
